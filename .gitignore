@@ -55,3 +55,15 @@ yarn-error.log*
 .project
 .pydevproject
 .settings/
+# Ignore env files anywhere in the project
+.env
+.env.local
+.env.sample
+!.env.example
+
+# Ignore Python & Node garbage
+**/__pycache__/
+**/node_modules/
+**/venv/
+**/.next/
+db.sqlite3
