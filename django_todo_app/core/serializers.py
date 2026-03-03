@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import Task, TaskGroup
+from datetime import timedelta
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,6 +41,9 @@ class TaskSerializer(serializers.ModelSerializer):
 
     # 2. VALIDATION: Keeping your deadline check
     def validate_deadline(self, value):
+        if value is None:
+            return  timezone.now() + timedelta(hours=24)
+
         if value and value < timezone.now():
             raise serializers.ValidationError("Deadline cannot be in the past.")
         return value

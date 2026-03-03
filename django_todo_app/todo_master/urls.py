@@ -27,6 +27,8 @@ urlpatterns = [
     # 3. USER INFO: To verify who is logged in on the frontend
     path('api/me/', UserMeView.as_view(), name='user_me'),
 
+
+
     # 4. DATA ENDPOINTS: Groups and Tasks
     path('api/', include(router.urls)),
 ]

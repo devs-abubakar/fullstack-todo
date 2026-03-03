@@ -15,6 +15,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 
 from datetime import timedelta
+load_dotenv()
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1), # Give yourself 1 hour to debug
