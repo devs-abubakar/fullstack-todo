@@ -27,16 +27,19 @@ class TaskGroupSerializer(serializers.ModelSerializer):
         read_only_fields = ['creator']
 
 class TaskSerializer(serializers.ModelSerializer):
-    creator = serializers.ReadOnlyField(source='creator.username')
+    creator_name = serializers.ReadOnlyField(source='creator.username')
+    creator_id = serializers.ReadOnlyField(source='creator.id')
     # Show the name in the UI, but use ID for the database update
     assigned_to_username = serializers.ReadOnlyField(source='assigned_to.username')
+
+    deadline = serializers.DateTimeField(required=False, allow_null=True)
     
     class Meta:
         model = Task
         fields = [
             'id', 'title', 'description', 'deadline', 
             'completed', 'assigned_to', 'assigned_to_username', 
-            'creator', 'group'
+            'creator_id','creator_name', 'group'
         ]
 
     # 2. VALIDATION: Keeping your deadline check

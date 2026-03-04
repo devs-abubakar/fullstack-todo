@@ -66,27 +66,45 @@ class TaskGroupViewSet(viewsets.ModelViewSet):
 # 3. TASKS: The core logic for collaborative and personal tasks
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [permissions.IsAuthenticated] # You can add back IsAssignedorCreator later
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        group_id = self.request.query_params.get('group')
+        
+        # 🚨 THE FIX: If we are targeting a specific task (DELETE/PATCH),
+        # look at ALL tasks the user has a right to see, ignoring the group filter.
+        if self.detail:
+            return Task.objects.filter(Q(creator=user) | Q(assigned_to=user) | Q(group__members=user)).distinct()
 
-        # SCENARIO A: User clicked a Group in the Sidebar
+        group_id = self.request.query_params.get('group')
         if group_id:
             return Task.objects.filter(group_id=group_id, group__members=user)
         
-        # SCENARIO B: Personal View (Tasks with no group OR assigned specifically to me)
         return Task.objects.filter(
             Q(group__isnull=True, creator=user) | Q(assigned_to=user)
         ).distinct()
-
+    
+    def destroy(self, request, *args, **kwargs):
+        task = self.get_object()
+        # Only the person who created the task can kill it
+        if task.creator != request.user:
+            return Response(
+                {"error": "You didn't create this. Hands off."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
 
     @action(detail=True, methods=['patch', 'post'])
     def toggle(self, request, pk=None):
         task = self.get_object()
+        user=request.user
+        if task.creator != user and task.assigned_to != user:
+            return Response(
+                {"error": "You aren't responsible for this task!"}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
         task.completed = not task.completed
         task.save()
         return Response({'status': 'task toggled', 'completed': task.completed})

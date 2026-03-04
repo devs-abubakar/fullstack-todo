@@ -51,7 +51,9 @@ const handleAddTask = async (e) => {
     if (newTask.deadline && newTask.deadline.trim() !== "") {
         try {
             // Convert "2026-03-25T14:30" -> "2026-03-25T14:30:00.000Z"
+            console.log(newTask.deadline)
             finalDeadline = new Date(newTask.deadline).toISOString();
+            console.log(finalDeadline)
         } catch (err) {
             console.error("Invalid Date Object:", err);
             return alert("Invalid date selected.");
@@ -75,16 +77,36 @@ const handleAddTask = async (e) => {
         alert("Server says: " + JSON.stringify(err.response?.data));
     }
 };
-    const handleDeleteTask = async (taskId) => {
-        if (!confirm("Confirm permanent deletion?")) return;
-        try {
-            await api.delete(`tasks/${taskId}/`);
-            setTasks(prev => prev.filter(t => t.id !== taskId));
-        } catch (err) {
-            alert(err.response?.data?.error || "Unauthorized delete attempt.");
-        }
-    };
 
+const handleToggle = async (taskId) => {
+    try {
+        const res = await api.post(`tasks/${taskId}/toggle/`);
+        // Update the local state so the UI reflects the change
+        setTasks(prev => prev.map(t => 
+            t.id === taskId ? { ...t, completed: res.data.completed } : t
+        ));
+    } catch (err) {
+        alert(err.response?.data?.error || "Check your permissions!");
+    }
+};
+
+const handleDeleteTask = async (taskId) => {
+    if (!window.confirm("Do you really want to delete this task")) return
+    // 1. Save a backup of current tasks in case of failure
+    const previousTasks = [...tasks];
+
+    // 2. OPTIMISTIC UPDATE: Remove it from UI immediately
+    setTasks(tasks.filter(t => t.id !== taskId));
+
+    try {
+        await api.delete(`tasks/${taskId}/`);
+        // Success! No need to do anything else.
+    } catch (err) {
+        // 3. ROLLBACK: If server fails (e.g., 403 Forbidden), put it back
+        setTasks(previousTasks);
+        alert(err.response?.data?.error || "Delete failed. Task restored.");
+    }
+};
     if (loading) return (
         <div className="flex h-screen items-center justify-center bg-slate-50">
             <div className="animate-pulse flex flex-col items-center">
