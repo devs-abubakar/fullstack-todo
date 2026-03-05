@@ -1,12 +1,14 @@
 "use client"
 import "./globals.css";
+import { useState } from "react";
 import { usePathname } from "next/navigation"
 import { Sidebar,SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "./custom/components/Sidebar"
+import CreateGroupModal from "./custom/components/CreateGroupModal";
 export default function RootLayout({ children }) {
   const pathname = usePathname()
   const isPublicPage = pathname === "/login" || pathname === "/signup"
-
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
   return (
     <html lang="en">
       <body suppressHydrationWarning>
@@ -17,8 +19,9 @@ export default function RootLayout({ children }) {
           // Protected pages get the full Workspace
           <SidebarProvider>
             <div className="flex min-h-screen w-full">
-              <AppSidebar />
+              <AppSidebar onOpenModal={() => setIsCreateGroupOpen(true)}/>
               <main className="flex-1">{children}</main>
+              <CreateGroupModal isOpen={isCreateGroupOpen} onClose={()=>{setIsCreateGroupOpen(false)}}/>
             </div>
           </SidebarProvider>
         )}

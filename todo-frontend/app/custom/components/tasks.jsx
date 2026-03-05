@@ -62,9 +62,4 @@ const Tasks = () => {
 }
 
 export default Tasks
-// {
-//     "username": "user2",
-//     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3MjQ3OTA0MywiaWF0IjoxNzcyMzkyNjQzLCJqdGkiOiIwNmRmMjMxNzVjZjk0ZTQxOWFmMTRkYzliM2E4OTg3NiIsInVzZXJfaWQiOiI0In0.xW7GB3W-F26TyUTnl-3qVYWxW1kMTeABA60c3zeVO5c",
-//     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcyMzk2MjQzLCJpYXQiOjE3NzIzOTI2NDMsImp0aSI6ImEyNTljOWI3ZGMzYzRlZTM5Yjc1MTY1Mzk1MDFlMjdiIiwidXNlcl9pZCI6IjQifQ.XA3OOX5bWDxJewAZILvBYG1AMeeOhLNCdbSwyNu7-uM"
-// }
 

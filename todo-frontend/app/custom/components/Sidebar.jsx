@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { LayoutDashboard, Hash, LogOut, Loader2 } from "lucide-react"
+import { LayoutDashboard, Plus,Hash, LogOut, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation" // 🔥 THE MODERN WAY
 import { 
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, 
@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar"
 import api from "../../lib/api"
 
-export function AppSidebar() {
+export function AppSidebar( {onOpenModal} ) {
   const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -31,6 +31,7 @@ export function AppSidebar() {
     }
     fetchGroups()
   }, [])
+
 
   const handleLogout = () => {
     localStorage.clear() // Clean sweep
@@ -68,6 +69,9 @@ export function AppSidebar() {
         {/* SECTION 2: WORKSPACES */}
         <SidebarGroup>
           <SidebarGroupLabel>Workspaces</SidebarGroupLabel>
+            <SidebarMenuButton onClick={onOpenModal} className="flex items-center gap-2 bg-indigo-600 hover:text-gray-200 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all active:scale-95">
+                    <Plus size={18} /> Create Workspace
+            </SidebarMenuButton>
           <SidebarMenu>
             {loading ? (
               <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>
