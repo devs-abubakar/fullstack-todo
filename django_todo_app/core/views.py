@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import Task, TaskGroup
-from .serializers import TaskSerializer, TaskGroupSerializer, UserSerializer
+from .models import Task, TaskGroup, Friendship
+from .serializers import TaskSerializer, TaskGroupSerializer, UserSerializer, FriendshipSerializer
 
 
 from django.contrib.auth.models import User
@@ -108,3 +108,24 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.completed = not task.completed
         task.save()
         return Response({'status': 'task toggled', 'completed': task.completed})
+    
+    #4 Adding Friends
+
+class FriendshipViewset(viewsets.ModelViewSet):
+    serializer_class=FriendshipSerializer
+
+    def get_queryset(self):
+        return Friendship.objects.filter(
+            Q(creator=self.request.user) | Q(friend=self.request.user)
+        )
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
+
+    @action(detail=True,methods=['post'])
+    def accept(self,request,pk=None):
+        friendship=self.get_object()
+        if friendship.friend==request.user:
+            friendship.status=='accept'
+            friendship.save()
+            return Response({"status","Friendship Accepted"})
+        return Response({"Error","Not authorized"},status=status.HTTP_403_FORBIDDEN)

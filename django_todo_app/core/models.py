@@ -37,3 +37,17 @@ class Task(models.Model):
     def __str__(self):
         status = "✅" if self.completed else "⏳"
         return f"{status} {self.title} | Group: {self.group.name if self.group else 'Private'}"
+
+class Friendship(models.Model):
+    STATUS_CHOICES=(
+        ('pending','Pending'),
+        ('accepted','Accepted'),
+        ('blocked','Blocked'),
+                    )
+    creator=models.ForeignKey(User,related_name="friendship_creator",on_delete=models.CASCADE)
+    friend=models.ForeignKey(User,related_name="friend_set",on_delete=models.CASCADE)
+    status=models.CharField(max_length=10,choices=STATUS_CHOICES,default='pending')
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('creator', 'friend') # Prevents duplicate rows for the same pair

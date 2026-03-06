@@ -12,16 +12,22 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
 
   useEffect(() => {
     if (isOpen) {
-      // 🚨 NOTE: This will fail until your Django /friends/ endpoint is ready
-      // api.get('/friends/')
-      //   .then(res => setFriends(res.data.results || res.data))
-      //   .catch(err => console.error("Friends fetch failed:", err))
-    setFriends([
-      { id: 1, username: "dev_bob" },
-      { id: 2, username: "alice_coder" },
-      { id: 3, username: "tech_guru" }
-    ]);
-    }
+
+     api.get('/friendships/')
+      .then(res => {
+        const data = res.data.results || res.data;
+        
+        // Logic: Extract the "Friend" details from the friendship object
+        // We only want 'accepted' friends for creating groups!
+        const actualFriends = data
+          .filter(f => f.status === 'accepted')
+          .map(f => f.friend_details); // This gets the nested user info
+        
+        setFriends(actualFriends);
+        console.log(friends)
+      })
+      .catch(err => console.error("Failed to fetch real friends:", err));
+  }
     
   }, [isOpen])
 

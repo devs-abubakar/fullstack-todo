@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import Task, TaskGroup
+from .models import Task, TaskGroup,Friendship
 from datetime import timedelta
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,6 +12,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+class FriendshipSerializer(serializers.ModelSerializer):
+    creator_details=UserSerializer(source='creator',read_only=True)
+    friend_details=UserSerializer(source='friend',read_only=True)
+
+    class Meta:
+        model = Friendship
+        fields = ['id', 'creator', 'friend', 'status', 'created_at', 'creator_details', 'friend_details']
+        read_only_fields = ['creator', 'status', 'created_at'] # Users shouldn't be able to "fake" these
 
 # 1. NEW: This powers the Sidebar and the "Member Picker"
 class TaskGroupSerializer(serializers.ModelSerializer):

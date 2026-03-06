@@ -7,12 +7,13 @@ from rest_framework_simplejwt.views import (
 )
 # Make sure these are the correct imports for your API-only views
 from core.api_view import SignupApiView, LoginApiView 
-from core.views import TaskViewSet,UserMeView,TaskGroupViewSet,RegisterView
+from core.views import TaskViewSet,UserMeView,TaskGroupViewSet,RegisterView, FriendshipViewset
 
 
 router = DefaultRouter()
 router.register(r'groups', TaskGroupViewSet,basename='taskgroup')
 router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r"friendships",FriendshipViewset,basename="friendship")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +30,6 @@ urlpatterns = [
 
 
 
-    # 4. DATA ENDPOINTS: Groups and Tasks
+    # 4. DATA ENDPOINTS: Groups, Tasks and Friendships
     path('api/', include(router.urls)),
 ]
