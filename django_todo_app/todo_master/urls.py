@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import (
 )
 # Make sure these are the correct imports for your API-only views
 from core.api_view import SignupApiView, LoginApiView 
-from core.views import TaskViewSet,UserMeView,TaskGroupViewSet,RegisterView, FriendshipViewset
+from core.views import TaskViewSet,UserMeView,TaskGroupViewSet,RegisterView, FriendshipViewset,UserSearchView
 
 
 router = DefaultRouter()
@@ -22,6 +22,8 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
+
+    path('api/users/search/', UserSearchView.as_view(), name='user_search'),
     # 2. THE ONLY SIGNUP YOU NEED: Custom RegisterView (returns tokens + creates user)
     path('api/register/', RegisterView.as_view(), name='register'),
 

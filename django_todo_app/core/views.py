@@ -10,7 +10,18 @@ from .serializers import TaskSerializer, TaskGroupSerializer, UserSerializer, Fr
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from rest_framework import generics, permissions, filters
 
+class UserSearchView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username'] # This allows ?search=username in the URL
+
+    def get_queryset(self):
+        # Don't show the logged-in user in the search results!
+        return User.objects.exclude(id=self.request.user.id)
 class RegisterView(APIView):
     # 🚨 CRITICAL: Allow anyone to access this, otherwise they can't sign up!
     permission_classes = [permissions.AllowAny]
@@ -112,6 +123,30 @@ class TaskViewSet(viewsets.ModelViewSet):
     #4 Adding Friends
 
 class FriendshipViewset(viewsets.ModelViewSet):
+    serializer_class = FriendshipSerializer
+
+    def get_queryset(self):
+        # Return all friendships the user is part of
+        return Friendship.objects.filter(Q(creator=self.request.user) | Q(friend=self.request.user))
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
+
+    # NEW: This is the "Inbox" endpoint for the frontend
+    @action(detail=False, methods=['get'])
+    def requests(self, request):
+        pending = Friendship.objects.filter(friend=request.user, status='pending')
+        serializer = FriendshipSerializer(pending, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        friendship = self.get_object()
+        if friendship.friend == request.user:
+            friendship.status = 'accepted' # ✅ Correct assignment
+            friendship.save()
+            return Response({"status": "Friendship Accepted"})
+        return Response({"error": "Unauthorized"}, status=403)
     serializer_class=FriendshipSerializer
 
     def get_queryset(self):

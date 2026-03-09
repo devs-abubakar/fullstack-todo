@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import Task, TaskGroup,Friendship
 from datetime import timedelta
+from django.db.models import Q
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,10 +23,25 @@ class FriendshipSerializer(serializers.ModelSerializer):
         fields = ['id', 'creator', 'friend', 'status', 'created_at', 'creator_details', 'friend_details']
         read_only_fields = ['creator', 'status', 'created_at'] # Users shouldn't be able to "fake" these
 
+    def validate_members_id(self,users):
+        user=self.context['request'].user
+
+        for friend in user:
+            if friend == user:
+                continue
+                        # Check for ANY accepted friendship between the creator and the target
+            is_friend = Friendship.objects.filter(
+                (Q(creator=user) & Q(friend=friend) | Q(creator=friend) & Q(friend=user)),
+                status='accepted'
+            ).exists()
+            if not is_friend:
+                raise serializers.ValidationError(
+                    f"You are not friends with {friend.username}. Add them as a friend first."
+                )
+        return users
 # 1. NEW: This powers the Sidebar and the "Member Picker"
 class TaskGroupSerializer(serializers.ModelSerializer):
     members = UserSerializer(many=True, read_only=True)
-    # Allows adding members by ID during creation
     member_ids = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, queryset=User.objects.all(), source='members'
     )
@@ -35,6 +51,21 @@ class TaskGroupSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'creator', 'members', 'member_ids', 'created_at']
         read_only_fields = ['creator']
 
+    # THIS is where the friendship check belongs!
+    def validate_member_ids(self, data):
+        request_user = self.context['request'].user
+        for member in data:
+            if member == request_user: continue
+            
+            # Ensure an accepted friendship exists
+            exists = Friendship.objects.filter(
+                (Q(creator=request_user, friend=member) | Q(creator=member, friend=request_user)),
+                status='accepted'
+            ).exists()
+            
+            if not exists:
+                raise serializers.ValidationError(f"You aren't friends with {member.username}")
+        return data
 class TaskSerializer(serializers.ModelSerializer):
     creator_name = serializers.ReadOnlyField(source='creator.username')
     creator_id = serializers.ReadOnlyField(source='creator.id')
