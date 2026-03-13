@@ -16,10 +16,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 class FriendshipSerializer(serializers.ModelSerializer):
     friend_info = serializers.SerializerMethodField()
-
+    friend = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     class Meta:
         model = Friendship
-        fields = ['id', 'status', 'created_at', 'friend_info']
+        fields = ['id', 'status', 'friend','created_at', 'friend_info']
         read_only_fields = ['status', 'created_at']
 
     # FIXED: This must be OUTSIDE Meta, but INSIDE the Serializer class

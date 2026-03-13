@@ -21,7 +21,7 @@ class UserSearchView(generics.ListAPIView):
 
     def get_queryset(self):
         # Don't show the logged-in user in the search results!
-        return User.objects.exclude(id=self.request.user.id)
+        return User.objects.exclude(id=self.request.user.id).order_by('username')
 class RegisterView(APIView):
     # 🚨 CRITICAL: Allow anyone to access this, otherwise they can't sign up!
     permission_classes = [permissions.AllowAny]
