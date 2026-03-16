@@ -1,50 +1,36 @@
 'use client'
-import React, { useEffect, useState } from 'react'
-import api from '@/app/lib/api' // Don't forget to import your api instance!
-import { Check, X } from 'lucide-react'
+import React from 'react'
+import api from '@/app/lib/api' 
+import { Check } from 'lucide-react'
+import { useFriendRequest } from '@/hooks/useData'
 
 const FriendRequests = () => {
-    const [requests, setRequests] = useState([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        const getRequests = async () => {
-            try {
-                // Correct endpoint for INCOMING requests
-                const res = await api.get('/friendships/requests/')
-                // If using pagination, remember res.data.results
-                setRequests(res.data.results || res.data)
-                console.log(res)
-            } catch (err) {
-                console.error("Fetch error:", err)
-            } finally {
-                setLoading(false)
-            }
-        }
-        
-        getRequests() // 🚀 YOU MUST CALL THE FUNCTION
-    }, [])
+    // 1. Let SWR handle the fetching. 'requests' is your data.
+    const { requests, isLoading, isError, mutateRequests } = useFriendRequest()
 
     const handleAccept = async (id) => {
         try {
             await api.post(`/friendships/${id}/accept/`)
-            // Remove the request from the list after accepting
-            setRequests(prev => prev.filter(req => req.id !== id))
+            // 2. Tell SWR the data changed; it will re-fetch automatically
+            mutateRequests() 
         } catch (err) {
             alert("Failed to accept")
         }
     }
 
-    if (loading) return <p className="text-sm text-slate-400">Loading requests...</p>
+    // 3. Handle loading and error states cleanly
+    if (isLoading) return <p className="text-sm text-slate-400 text-center py-4">Loading requests...</p>
+    if (isError) return <p className="text-sm text-red-400 text-center py-4">Failed to load requests.</p>
 
     return (
         <div className="space-y-3">
-            {requests.length > 0 ? (
+            {/* 4. Use 'requests' directly. Always check length safely. */}
+            {requests && requests.length > 0 ? (
                 requests.map((req) => (
                     <div key={req.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="flex flex-col">
                             <span className="font-bold text-slate-800 text-sm">
-                                {req.friend_info?.username}
+                                {req.friend_info?.username || "Unknown User"}
                             </span>
                             <span className='font-semibold text-slate-700 text-sm'>{req.friend_info?.email}</span>
                             <span className="text-xs text-slate-500">Sent you a request</span>
@@ -53,7 +39,7 @@ const FriendRequests = () => {
                         <div className="flex gap-2">
                             <button 
                                 onClick={() => handleAccept(req.id)}
-                                className="p-2 bg-green-400 text-white rounded-lg hover:bg-indigo-700 transition"
+                                className="p-2 bg-green-400 text-white rounded-lg hover:bg-green-500 transition"
                             >
                                 <Check size={16} />
                             </button>

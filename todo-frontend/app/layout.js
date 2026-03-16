@@ -1,6 +1,8 @@
 "use client"
 import "./globals.css";
 import { useState } from "react";
+import fetcher from "./lib/api";
+import { SWRConfig } from "swr";
 import { usePathname } from "next/navigation"
 import { Sidebar,SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "./custom/components/Sidebar"
@@ -9,6 +11,15 @@ export default function RootLayout({ children }) {
   const pathname = usePathname()
   const isPublicPage = pathname === "/login" || pathname === "/signup"
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+
+  const swrOptions = {
+    fetcher,
+    revalidateOnFocus: true,
+    refreshInterval: 60000, // Global re-sync every 1 minute
+    dedupingInterval: 2000, // Prevent multiple identical requests within 2 seconds
+    errorRetryCount: 3,
+  };
+
   return (
     <html lang="en">
       <body suppressHydrationWarning>
@@ -17,6 +28,7 @@ export default function RootLayout({ children }) {
           <main>{children}</main>
         ) : (
           // Protected pages get the full Workspace
+          <SWRConfig value={swrOptions}>
           <SidebarProvider>
             <div className="flex min-h-screen w-full">
               <AppSidebar onOpenModal={() => setIsCreateGroupOpen(true)}/>
@@ -24,6 +36,7 @@ export default function RootLayout({ children }) {
               <CreateGroupModal isOpen={isCreateGroupOpen} onClose={()=>{setIsCreateGroupOpen(false)}}/>
             </div>
           </SidebarProvider>
+          </SWRConfig>
         )}
       </body>
     </html>
