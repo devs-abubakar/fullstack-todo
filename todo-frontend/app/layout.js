@@ -1,7 +1,8 @@
 "use client"
 import "./globals.css";
-import { useState } from "react";
+import { useState,Suspense } from "react";
 import fetcher from "./lib/api";
+
 import { SWRConfig } from "swr";
 import { usePathname } from "next/navigation"
 import { Sidebar,SidebarProvider } from "@/components/ui/sidebar"
@@ -23,6 +24,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
+        <Suspense>
+          
         {isPublicPage ? (
           // Public pages get a simple container (No Sidebar!)
           <main>{children}</main>
@@ -38,6 +41,7 @@ export default function RootLayout({ children }) {
           </SidebarProvider>
           </SWRConfig>
         )}
+        </Suspense>
       </body>
     </html>
   )
