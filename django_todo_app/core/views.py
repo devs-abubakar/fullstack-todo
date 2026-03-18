@@ -138,73 +138,91 @@ class FriendshipViewset(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Base queryset MUST return Friendship objects.
+        We filter to only show friendships the current user is part of.
+        """
         user = self.request.user
-        # Get IDs of people I'm already involved with
+        return Friendship.objects.filter(Q(creator=user) | Q(friend=user))
+
+    def perform_create(self, serializer):
+        """
+        Handle the 'Send Request' logic with proper error raising.
+        """
+        friend = serializer.validated_data.get('friend')
+        user = self.request.user
+
+        if friend == user:
+            raise ValidationError({"error": "You cannot friend yourself."})
+
+        # Check if any relationship (pending or accepted) already exists
+        exists = Friendship.objects.filter(
+            (Q(creator=user, friend=friend) | Q(creator=friend, friend=user))
+        ).exists()
+
+        if exists:
+            raise ValidationError({"error": "Friendship or request already exists."})
+        
+        serializer.save(creator=user)
+
+    @action(detail=False, methods=['get'])
+    def discover_people(self, request):
+        """
+        Logic to find users you ARE NOT friends with yet.
+        """
+        user = request.user
+        # Get all IDs of people you have a relationship with
         friend_ids = Friendship.objects.filter(
             Q(creator=user) | Q(friend=user)
         ).values_list('creator_id', 'friend_id')
         
-        # Flatten the list of IDs
         flattened_ids = {uid for tup in friend_ids for uid in tup}
         
-        return User.objects.exclude(id__in=flattened_ids).order_by('username')
-    def perform_create(self, serializer):
-        friend = serializer.validated_data.get('friend')
+        # Exclude them and yourself
+        users = User.objects.exclude(id__in=flattened_ids).exclude(id=user.id).order_by('username')
         
-        # 1. Prevent self-friending
-        if friend == self.request.user:
-            return Response({"error": "You cannot friend yourself."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 2. Prevent duplicates (Already friends or already requested)
-        exists = Friendship.objects.filter(
-            (Q(creator=self.request.user, friend=friend) | Q(creator=friend, friend=self.request.user))
-        ).exists()
-
-        if exists:
-            # We don't want to save a duplicate
-            return # The serializer's internal validation will usually catch this if you added it there
-        
-        serializer.save(creator=self.request.user)
-
-    @action(detail=False, methods=['get'])
-    def accepted_friends(self, request):
-        # Filter for confirmed friends only
-        friends = Friendship.objects.filter(
-            (Q(creator=request.user) | Q(friend=request.user)),
-            status='accepted'
-        )
-        # We pass 'context' so the Serializer's get_friend_info knows who you are
-        serializer = FriendshipSerializer(friends, many=True, context={'request': request})
+        serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['get'])
     def requests(self, request):
-        # Filter for incoming requests where you are the recipient
+        """
+        Get incoming pending requests.
+        """
         pending = Friendship.objects.filter(friend=request.user, status='pending')
-        # FIX: Added context={'request': request} here too!
         serializer = FriendshipSerializer(pending, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
+        """
+        Accept a specific friendship request.
+        """
         try:
-            # We manually fetch it to see exactly what's wrong
-            friendship = Friendship.objects.get(pk=pk)
+            # We use the base queryset here
+            friendship = self.get_object()
             
-            # Check if the logged-in user is the receiver
             if friendship.friend != request.user:
-                return Response({"error": "Only the recipient can accept this."}, status=403)
+                return Response({"error": "Only the recipient can accept this."}, status=status.HTTP_403_FORBIDDEN)
             
             friendship.status = 'accepted'
             friendship.save()
-            return Response({"status": "Friendship Accepted"}, status=200)
+            return Response({"status": "Friendship Accepted"}, status=status.HTTP_200_OK)
             
         except Friendship.DoesNotExist:
-            return Response({"error": "Friendship request not found."}, status=404)
-        except Exception as e:
-            # This will print the exact error in your terminal
-            print(f"CRITICAL ERROR: {e}")
-            return Response({"error": str(e)}, status=500)
+            return Response({"error": "Request not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'])
+    def accepted_friends(self, request):
+        """
+        Get list of confirmed friends.
+        """
+        friends = Friendship.objects.filter(
+            (Q(creator=request.user) | Q(friend=request.user)),
+            status='accepted'
+        )
+        serializer = FriendshipSerializer(friends, many=True, context={'request': request})
+        return Response(serializer.data)
     
     def destroy(self, request, *args, **kwargs):
         friendship = self.get_object()
