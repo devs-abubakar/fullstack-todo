@@ -1,6 +1,7 @@
 'use client'
 import { LoaderOne } from '@/components/ui/loader';
 import { Calendar, Trash2, Clock, CheckCircle2 } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 
 export default function TaskCard({ task, onDelete, onToggle ,istoggling,isDeleting}) {
@@ -38,7 +39,7 @@ export default function TaskCard({ task, onDelete, onToggle ,istoggling,isDeleti
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-400">{task.creator_name}</span>
-                    <img 
+                    <Image
                         src={`https://api.dicebear.com/7.x/initials/svg?seed=${task.creator_name}`} 
                         className="h-6 w-6 rounded-full bg-slate-100"
                         alt="avatar"

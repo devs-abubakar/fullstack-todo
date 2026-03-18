@@ -2,6 +2,7 @@
 import { Plus } from 'lucide-react';
 import FriendSearch from './FriendSearch';
 import SocialActions from './FriendsModal';
+import Image from 'next/image';
 
 export default function DashboardHeader({ activeGroupId, groupData, onOpenModal }) {
     return (
@@ -23,7 +24,7 @@ export default function DashboardHeader({ activeGroupId, groupData, onOpenModal 
                     <div className="flex -space-x-3 items-center">
                         {groupData.members.slice(0, 5).map((m) => (
                             <div key={m.id} className="relative group">
-                                <img 
+                                <Image
                                     src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${m.username}`}
                                     className="h-10 w-10 rounded-full border-2 border-white bg-slate-200 hover:z-10 transition-transform hover:scale-110 cursor-help"
                                     alt={m.username}

@@ -33,6 +33,7 @@ const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 const SidebarContext = React.createContext(null)
 
+
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
@@ -53,7 +54,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
-
+  const [width, setWidth] = React.useState("70%");
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen)
@@ -572,9 +573,10 @@ function SidebarMenuSkeleton({
   ...props
 }) {
   // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
-  }, [])
+React.useEffect(() => {
+  const randomWidth = `${Math.floor(Math.random() * 40) + 50}%`;
+  setWidth(randomWidth);
+}, []);
 
   return (
     <div
