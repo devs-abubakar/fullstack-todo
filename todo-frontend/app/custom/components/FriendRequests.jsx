@@ -41,7 +41,7 @@ const FriendRequests = () => {
                         
                         <div className="flex gap-2">
 
-                            {isaccepting?<LoaderOne/>:<button 
+                            {accepting?<LoaderOne/>:<button 
                                 onClick={() => handleAccept(req.id)}
                                 className="p-2 bg-green-400 text-white rounded-lg hover:bg-green-500 transition"
                             >
