@@ -16,49 +16,37 @@ class UserSerializer(serializers.ModelSerializer):
 
 class FriendshipSerializer(serializers.ModelSerializer):
     friend_info = serializers.SerializerMethodField()
-    # friend = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    friend = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), 
-        write_only=True
-    )
+    friend = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+
     class Meta:
         model = Friendship
-        fields = ['id', 'status', 'friend','friend_info','created_at']
+        fields = ['id', 'status', 'friend', 'friend_info', 'created_at']
         read_only_fields = ['status', 'created_at']
 
-    # FIXED: This must be OUTSIDE Meta, but INSIDE the Serializer class
     def get_friend_info(self, obj):
-        try:
-            request_user = self.context['request'].user
-            
-            # Logic to find the "other" person
-            other_user = obj.friend if obj.creator == request_user else obj.creator
-                
-            return {
-                "id": other_user.id,
-                "username": other_user.username,
-                "email": other_user.email
-            }
-        except Exception:
-            return None# 1. NEW: This powers the Sidebar and the "Member Picker"
+        request_user = self.context.get('request').user
+        other_user = obj.friend if obj.creator == request_user else obj.creator
+        return {
+            "id": other_user.id,
+            "username": other_user.username,
+            "email": other_user.email
+        }
+
     def validate(self, data):
         request = self.context.get('request')
-        # Only check during creation
-        if self.instance is None and request and request.user:
-            creator = request.user
-            friend = data.get('friend')
+        creator = request.user
+        friend = data.get('friend')
+        if creator == friend:
+            raise serializers.ValidationError("You cannot friend yourself.")
 
-            if creator == friend:
-                raise serializers.ValidationError("You cannot friend yourself.")
+        exists = Friendship.objects.filter(
+            Q(creator=creator, friend=friend) | Q(creator=friend, friend=creator)
+        ).exists()
 
-            exists = Friendship.objects.filter(
-                (Q(creator=creator, friend=friend) | Q(creator=friend, friend=creator))
-            ).exists()
+        if exists:
+            raise serializers.ValidationError("A request or friendship already exists.")
 
-            if exists:
-                raise serializers.ValidationError("A request or friendship already exists.")
         return data
-
 
 
 class TaskGroupSerializer(serializers.ModelSerializer):

@@ -138,95 +138,68 @@ class FriendshipViewset(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Base queryset MUST return Friendship objects.
-        We filter to only show friendships the current user is part of.
-        """
         user = self.request.user
         return Friendship.objects.filter(Q(creator=user) | Q(friend=user))
 
     def perform_create(self, serializer):
-        """
-        Handle the 'Send Request' logic with proper error raising.
-        """
-        friend = serializer.validated_data.get('friend')
-        user = self.request.user
-
-        if friend == user:
-            raise ValidationError({"error": "You cannot friend yourself."})
-
-        # Check if any relationship (pending or accepted) already exists
-        exists = Friendship.objects.filter(
-            (Q(creator=user, friend=friend) | Q(creator=friend, friend=user))
-        ).exists()
-
-        if exists:
-            raise ValidationError({"error": "Friendship or request already exists."})
-        
-        serializer.save(creator=user)
+        # Friend request creation logic
+        serializer.save(creator=self.request.user)
 
     @action(detail=False, methods=['get'])
     def discover_people(self, request):
         """
-        Logic to find users you ARE NOT friends with yet.
+        Return users who are NOT friends with the current user yet
         """
         user = request.user
-        # Get all IDs of people you have a relationship with
+        # all relationships involving user
         friend_ids = Friendship.objects.filter(
             Q(creator=user) | Q(friend=user)
         ).values_list('creator_id', 'friend_id')
-        
-        flattened_ids = {uid for tup in friend_ids for uid in tup}
-        
-        # Exclude them and yourself
-        users = User.objects.exclude(id__in=flattened_ids).exclude(id=user.id).order_by('username')
-        
-        serializer = UserSerializer(users, many=True)
+        # flatten IDs
+        excluded_ids = {uid for tup in friend_ids for uid in tup}
+        excluded_ids.add(user.id)  # exclude self
+
+        users = User.objects.exclude(id__in=excluded_ids).order_by('username')
+        serializer = UserSerializer(users, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def requests(self, request):
         """
-        Get incoming pending requests.
+        Return incoming friend requests (status='pending')
         """
         pending = Friendship.objects.filter(friend=request.user, status='pending')
-        serializer = FriendshipSerializer(pending, many=True, context={'request': request})
+        serializer = self.get_serializer(pending, many=True)  # context is automatically passed
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
         """
-        Accept a specific friendship request.
+        Accept a specific friend request
         """
-        try:
-            # We use the base queryset here
-            friendship = self.get_object()
-            
-            if friendship.friend != request.user:
-                return Response({"error": "Only the recipient can accept this."}, status=status.HTTP_403_FORBIDDEN)
-            
-            friendship.status = 'accepted'
-            friendship.save()
-            return Response({"status": "Friendship Accepted"}, status=status.HTTP_200_OK)
-            
-        except Friendship.DoesNotExist:
-            return Response({"error": "Request not found."}, status=status.HTTP_404_NOT_FOUND)
+        friendship = self.get_object()
+        if friendship.friend != request.user:
+            return Response({"error": "Only the recipient can accept this."}, status=status.HTTP_403_FORBIDDEN)
+        friendship.status = 'accepted'
+        friendship.save()
+        serializer = self.get_serializer(friendship)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
     def accepted_friends(self, request):
         """
-        Get list of confirmed friends.
+        Return confirmed friends (status='accepted')
         """
+        user = request.user
         friends = Friendship.objects.filter(
-            (Q(creator=request.user) | Q(friend=request.user)),
+            Q(creator=user) | Q(friend=user),
             status='accepted'
         )
-        serializer = FriendshipSerializer(friends, many=True, context={'request': request})
+        serializer = self.get_serializer(friends, many=True)
         return Response(serializer.data)
-    
+
     def destroy(self, request, *args, **kwargs):
         friendship = self.get_object()
-        # Only the creator or the receiver can cancel/delete a friendship
         if friendship.creator != request.user and friendship.friend != request.user:
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
