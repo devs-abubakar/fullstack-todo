@@ -22,7 +22,7 @@ export function useTasks() {
     };
 }
 export function useFriendRequest(){
-    const { data, error, mutate } = useSWR('/friendships/requests/');
+    const { data, error, mutate } = useSWR('friendships/requests/');
     return { 
         requests: data?.results || data || [], // Fallback to empty array
         isLoading: !error && !data, 
@@ -37,7 +37,7 @@ export function useFriends(){
     // If your backend returns { data: [...] }, this works. 
     // But we add || [] to prevent the .map() crash.
     return { 
-        friends: data?.data || data?.results || data || [], 
+        friends: data?.data || data || [], 
         isLoading: !error && !data, 
         isError: error, 
         mutateFriends: mutate 
