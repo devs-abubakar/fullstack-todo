@@ -4,21 +4,23 @@ import api from '@/app/lib/api'
 import { Check } from 'lucide-react'
 import { useFriendRequest } from '@/hooks/useData'
 import { LoaderOne } from '@/components/ui/loader'
+import { Spinner } from '@/components/ui/spinner'
 
 const FriendRequests = () => {
     // 1. Let SWR handle the fetching. 'requests' is your data.
     const { requests, isLoading, isError, mutateRequests } = useFriendRequest()
-    const [accepting,setaccepting]= useState(false)
+    const [acceptingId,setacceptingId]= useState(null)
     const handleAccept = async (id) => {
-        setaccepting(true)
+        setacceptingId(id)
         try {
             await api.post(`friendships/${id}/accept/`)
             // 2. Tell SWR the data changed; it will re-fetch automatically
             mutateRequests() 
         } catch (err) {
             alert("Failed to accept")
+        }finally{
+            setacceptingId(null)
         }
-        setaccepting(false)
     }
 
     // 3. Handle loading and error states cleanly
@@ -41,9 +43,9 @@ const FriendRequests = () => {
                         
                         <div className="flex gap-2">
 
-                            {accepting?<LoaderOne/>:<button 
+                            {acceptingId === req?.id ?<Spinner/>:<button 
                                 onClick={() => handleAccept(req.id)}
-                                className="p-2 bg-green-400 text-white rounded-lg hover:bg-green-500 transition"
+                                className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition shadow-sm active:scale-95"
                             >
                                 <Check size={16} />
                             </button>}

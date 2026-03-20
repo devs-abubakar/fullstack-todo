@@ -20,8 +20,8 @@ export default function Dashboard() {
     const searchParams = useSearchParams();
     const activeGroupId = searchParams.get('group');
     const [newTask, setNewTask] = useState({ title: '', description: '', deadline: '' });
-    const [isDeleting, setisDeleting] = useState(false)
-    const [istoggling,setistoggling] = useState(false)
+    const [deletingId, setdeletingId] = useState(null)
+    const [togglingId,settogglingId] = useState(null)
 
     const {isError,isUserLoading,user} = useUser()
     useEffect(() => {
@@ -73,7 +73,7 @@ export default function Dashboard() {
     };
 
     const handleToggle = async (taskId) => {
-        setistoggling(true)
+        settogglingId(taskId)
         try {
             const res = await api.post(`tasks/${taskId}/toggle/`);
             setTasks(prev => prev.map(t => 
@@ -82,12 +82,12 @@ export default function Dashboard() {
         } catch (err) {
             alert("Permission denied!");
         }
-        setistoggling(false)
+        settogglingId(null)
     };
 
     const handleDeleteTask = async (taskId) => {
         if (!window.confirm("Delete this task?")) return;
-        setisDeleting(true)
+        setdeletingId(taskId)
         const previousTasks = [...tasks];
         setTasks(tasks.filter(t => t.id !== taskId));
 
@@ -97,7 +97,7 @@ export default function Dashboard() {
             setTasks(previousTasks);
             alert("Delete failed.");
         }
-        setisDeleting(false)
+        setdeletingId(null)
     };
 
     if (loading) return (
@@ -127,15 +127,14 @@ export default function Dashboard() {
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <FriendList/>
                     {tasks.length > 0 ? tasks.map(task => (
                         <TaskCard 
                             key={task.id} 
                             task={task} 
                             onDelete={handleDeleteTask} 
                             onToggle={handleToggle}
-                            isDeleting
-                            istoggling 
+                            isDeleting={deletingId === task.id} // ONLY true for the active task
+                            isToggling={togglingId === task.id} 
                         />
                     )) : (
                         <div className="col-span-full py-20 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200">
