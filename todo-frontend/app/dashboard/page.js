@@ -1,11 +1,11 @@
 import React, { Suspense } from 'react'
 import Dashboard from '../custom/components/DashboardClient'
-import { LoaderOne } from '@/components/ui/loader'
+import { Spinner } from '@/components/ui/spinner'
 
 const page = () => {
   return (
     <div>
-        <Suspense fallback={<LoaderOne/>}>
+        <Suspense fallback={<Spinner/>}>
             <Dashboard/>
         </Suspense>
     </div>
