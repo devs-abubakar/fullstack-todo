@@ -41,7 +41,16 @@ export default function TaskModal({
                             onChange={e => setNewTask({...newTask, title: e.target.value})}
                         />
                     </div>
-
+                                        <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase ml-1">New Description</label>
+                        <input 
+                            
+                            className="w-full p-4 mt-1 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none" 
+                            placeholder="Add Description"
+                            value={newTask.description}
+                            onChange={e => setNewTask({...newTask, description: e.target.value})}
+                        />
+                    </div>
                     <div>
                         <label className="text-xs font-bold text-slate-400 uppercase ml-1">Deadline</label>
                         <input 
