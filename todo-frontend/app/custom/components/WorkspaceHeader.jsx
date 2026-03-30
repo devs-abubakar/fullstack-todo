@@ -40,7 +40,7 @@ export default function DashboardHeader({ activeGroupId, groupData, onOpenModal 
                 )}
                 <button 
                     onClick={onOpenModal}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all active:scale-95"
+                    className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all active:scale-95"
                 >
                     <Plus size={18} /> New Task
                 </button>

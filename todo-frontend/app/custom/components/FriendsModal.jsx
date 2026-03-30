@@ -19,14 +19,14 @@ export default function SocialActions() {
                 onClick={() => setActiveView('request-list')}
                 className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm group"
             >
-                <UserCheck size={18} className="text-indigo-600 group-hover:scale-110 transition-transform" />
+                <UserCheck size={18} className="text-brand-yellow group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium text-slate-700">Requests</span>
             </button>
 
             {/* BUTTON 2: FRIENDS */}
             <button 
                 onClick={() => setActiveView('friends-list')}
-                className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm group"
+                className="flex text-brand-green flex-1 sm:flex-none items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm group"
             >
                 <Users size={18} className="group-hover:scale-110 transition-transform"/>
                 <span className="text-xs sm:text-sm font-medium text-slate-700">Friends</span>
@@ -35,7 +35,7 @@ export default function SocialActions() {
             {/* BUTTON 3: FIND PEOPLE - 'w-full sm:w-auto' to highlight it on mobile */}
             <button 
                 onClick={() => setActiveView('search')}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 group"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-brand-peach rounded-xl hover:bg-brand-peach-hover transition-all shadow-md shadow-indigo-100 group"
             >
                 <UserPlus size={18} className="group-hover:scale-110 transition-transform" />
                 <span className="text-sm font-medium">Find People</span>

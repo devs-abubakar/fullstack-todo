@@ -17,6 +17,7 @@ import {
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { fetcher } from "../../lib/api"
+import Image from "next/image"
 
 export function AppSidebar({ onOpenModal }) {
   const router = useRouter()
@@ -42,16 +43,20 @@ export function AppSidebar({ onOpenModal }) {
     <Sidebar collapsible="icon" variant="sidebar" className="border-r border-slate-200">
       
       {/* HEADER: Cleaned up for mobile/icon state */}
-      <SidebarHeader className="h-16 border-b border-slate-100 flex items-center px-4">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 shrink-0 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-100">
-            T
-          </div>
-          <span className="font-bold text-slate-800 text-lg group-data-[collapsible=icon]:hidden">
-            TaskMaster
-          </span>
-        </div>
-      </SidebarHeader>
+<SidebarHeader className="h-16 border-b border-slate-100 flex items-center px-4">
+  <div className="flex items-center gap-3 rounded-2xl hover:scale-105 transition-all">
+    {/* Use fixed width/height for logos. It's much safer than 'fill' here. */}
+    <Image 
+      src='/logo-must-do.png' 
+      alt="Must-DO logo" 
+      width={60}  // Matches your h-6 (6 * 4px)
+      height={60} 
+      priority    // Correct way to "preload" critical UI
+      className="object-contain"
+    />
+    
+  </div>
+</SidebarHeader>
 
       <SidebarContent className="px-2">
         {/* NAVIGATION */}

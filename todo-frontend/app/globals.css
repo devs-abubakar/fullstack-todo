@@ -4,6 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
+@theme {
+  /* Primary Logo Colors */
+  --color-brand-peach: #F97B65;
+  --color-brand-green: #7CBA9A;
+  --color-brand-yellow: #F2C94C;
+  --color-brand-blue: #78C0E0;
+  --color-brand-dark: #1A2D2F;
+
+  /* UI Accents derived from logo */
+  --color-brand-peach-hover: #E86A54;
+  --color-brand-green-hover: #66A586;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
